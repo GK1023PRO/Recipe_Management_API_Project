@@ -1,0 +1,10 @@
+com.recipemanagement
+com.recipemanagement.config
+com.recipemanagement.controller
+com.recipemanagement.dto
+com.recipemanagement.exception
+com.recipemanagement.model
+com.recipemanagement.repository
+com.recipemanagement.security
+com.recipemanagement.service
+com.recipemanagement.util
