@@ -46,12 +46,12 @@ public class SecurityConfig {
                 .csrf(AbstractHttpConfigurer::disable)
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers(
-
+                                "/",
+                                "/OOPDocumentationJavaDoc/**",
                                 "/v3/api-docs/**",
                                 "/api/users",
-                                "/api/auth/**",
-                                "/OOPDocumentationJavaDoc/**"
-                                ).permitAll()
+                                "/api/auth/**"
+                        ).permitAll()
                         // Restrict POST, PUT, DELETE to ADMIN
                         .requestMatchers(HttpMethod.POST, "/api/recipes").hasRole("ADMIN")
                         .requestMatchers(HttpMethod.PUT, "/api/recipes/**").hasRole("ADMIN")
