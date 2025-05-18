@@ -49,7 +49,8 @@ public class SecurityConfig {
 
                                 "/v3/api-docs/**",
                                 "/api/users",
-                                "/api/auth/**"
+                                "/api/auth/**",
+                                "/OOPDocumentationJavaDoc/**"
                                 ).permitAll()
                         // Restrict POST, PUT, DELETE to ADMIN
                         .requestMatchers(HttpMethod.POST, "/api/recipes").hasRole("ADMIN")
