@@ -9,11 +9,13 @@ import org.springframework.web.bind.annotation.GetMapping;
 @Controller
 public class WebController {
     /**
-     * Redirects root URL requests to the JavaDoc documentation.
-     * @return A redirect URL to the JavaDoc documentation
+     * Handles the root URL and forwards to the JavaDoc documentation.
+     * This is a backup approach in case the WebMvcConfigurer redirect doesn't work.
+     *
+     * @return Forward path to the JavaDoc documentation index page
      */
     @GetMapping("/")
-    public String redirectToDocumentation() {
-        return "redirect:/OOPDocumentationJavaDoc/index.html";
+    public String home() {
+        return "forward:/OOPDocumentationJavaDoc/index.html";
     }
 }
