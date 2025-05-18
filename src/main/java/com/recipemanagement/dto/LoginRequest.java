@@ -1,13 +1,13 @@
 package com.recipemanagement.dto;
 
 import jakarta.validation.constraints.NotBlank;
-import lombok.Data;
+//import lombok.Data;
 
 /**
  * Data Transfer Object for authentication requests.
  * Contains validation constraints for login input.
  */
-@Data
+//@Data
 public class LoginRequest {
     /**
      * User's unique username

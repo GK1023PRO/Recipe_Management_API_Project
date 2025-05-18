@@ -1,8 +1,8 @@
 package com.recipemanagement.model;
 
 import jakarta.validation.constraints.NotBlank;
-import lombok.Data;
-import lombok.ToString;
+//import lombok.Data;
+//import lombok.ToString;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.index.Indexed;
 import org.springframework.data.mongodb.core.mapping.Document;
@@ -21,7 +21,7 @@ import org.springframework.security.core.authority.SimpleGrantedAuthority;
  * Implements Spring Security UserDetails for authentication.
  * Maps to MongoDB collection with validation constraints.
  */
-@Data
+//@Data
 @Document(collection = "users")
 public class User implements UserDetails {
     @Id
@@ -32,7 +32,7 @@ public class User implements UserDetails {
     private String username;
 
     @NotBlank
-    @ToString.Exclude
+    //@ToString.Exclude
     private String password;
 
     @NotBlank
@@ -41,7 +41,7 @@ public class User implements UserDetails {
     /**
      * User's roles in the system
      */
-    @ToString.Exclude
+    //@ToString.Exclude
     @JsonIgnore
     private List<Role> roles ;
 

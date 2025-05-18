@@ -17,7 +17,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import lombok.extern.slf4j.Slf4j;
+//import lombok.extern.slf4j.Slf4j;
 
 
 /**
@@ -25,7 +25,7 @@ import lombok.extern.slf4j.Slf4j;
  * Handles user registration, login, and JWT token generation.
  */
 @Service
-@Slf4j
+//@Slf4j
 public class AuthService {
     private static final Logger logger = LoggerFactory.getLogger(AuthService.class);
     private  AuthenticationManager authenticationManager;

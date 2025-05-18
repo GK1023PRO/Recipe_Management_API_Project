@@ -2,7 +2,7 @@ package com.recipemanagement.model;
 
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotEmpty;
-import lombok.Data;
+//import lombok.Data;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.index.Indexed;
 import org.springframework.data.mongodb.core.mapping.Document;
@@ -12,7 +12,7 @@ import java.util.List;
  * Entity class representing a recipe.
  * Maps to MongoDB collection with validation constraints.
  */
-@Data
+//@Data
 @Document(collection = "recipes")
 public class Recipe {
     /**

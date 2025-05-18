@@ -6,13 +6,13 @@ import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
-import lombok.Data;
+//import lombok.Data;
 
 /**
  * Data Transfer Object for user registration.
  * Contains validation constraints for user registration.
  */
-@Data
+//@Data
 public class RegisterRequest {
     @NotBlank private String username;
     @NotBlank @Email private String email;

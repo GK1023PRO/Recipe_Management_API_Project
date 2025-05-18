@@ -3,7 +3,7 @@ package com.recipemanagement.dto;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
-import lombok.Data;
+//import lombok.Data;
 
 import java.util.List;
 
@@ -11,7 +11,7 @@ import java.util.List;
  * Data Transfer Object for recipe operations.
  * Contains validation constraints for recipe creation/update.
  */
-@Data
+//@Data
 public class RecipeRequest {
     /**
      * Recipe title (required)
