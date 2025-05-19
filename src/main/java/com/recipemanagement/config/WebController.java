@@ -15,10 +15,12 @@ public class WebController {
      *
      * @return Forward path to the JavaDoc documentation index page
      */
-    @GetMapping("/")
+   /* @GetMapping("/")
     public String home() {
         return "redirect:/OOPDocumentationJavaDoc/index.html";
     }
+
+    */
 
     /**
      * Endpoint to access documentation via /javadoc.
