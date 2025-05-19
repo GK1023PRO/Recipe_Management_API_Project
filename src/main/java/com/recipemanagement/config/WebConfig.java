@@ -6,32 +6,39 @@ import org.springframework.web.servlet.config.annotation.ViewControllerRegistry;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 
 /**
- * Web configuration to handle static resources and URL mappings.
+ * Enhanced web configuration to handle static resources and URL mappings.
+ * Modified for proper deployment on Render.
  */
 @Configuration
 public class WebConfig implements WebMvcConfigurer {
 
     /**
-     * Configures static resource handling.
-     * Ensures JavaDoc documentation is properly served.
+     * Configures static resource handling with explicit cache control.
+     * Ensures JavaDoc documentation is properly served from classpath resources.
      */
     @Override
     public void addResourceHandlers(ResourceHandlerRegistry registry) {
+        // JavaDoc specific resources - high priority
         registry.addResourceHandler("/OOPDocumentationJavaDoc/**")
-                .addResourceLocations("classpath:/static/OOPDocumentationJavaDoc/");
+                .addResourceLocations("classpath:/static/OOPDocumentationJavaDoc/")
+                .setCachePeriod(3600); // Cache for 1 hour
 
-        // Add a fallback for other static resources
+        // All other static resources
         registry.addResourceHandler("/**")
-                .addResourceLocations("classpath:/static/");
+                .addResourceLocations("classpath:/static/")
+                .setCachePeriod(3600);
     }
 
     /**
-     * Adds view controllers for direct mapping of paths to views.
-     * Maps the root URL to redirect to JavaDoc documentation.
+     * Configures view controllers for URL mapping.
+     * Ensures root URL redirects to JavaDoc documentation index page.
      */
     @Override
     public void addViewControllers(ViewControllerRegistry registry) {
-        // Redirect root to JavaDoc
-        registry.addRedirectViewController("/", "/OOPDocumentationJavaDoc/index.html");
+        // Forward the root URL to JavaDoc index
+        registry.addViewController("/").setViewName("forward:/OOPDocumentationJavaDoc/index.html");
+
+        // Add another redirect as backup
+        registry.addRedirectViewController("/docs", "/OOPDocumentationJavaDoc/index.html");
     }
 }

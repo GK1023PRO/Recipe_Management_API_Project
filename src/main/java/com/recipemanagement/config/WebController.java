@@ -1,4 +1,5 @@
 package com.recipemanagement.config;
+
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
 
@@ -16,6 +17,17 @@ public class WebController {
      */
     @GetMapping("/")
     public String home() {
+        return "forward:/OOPDocumentationJavaDoc/index.html";
+    }
+
+    /**
+     * Alternative endpoint to access documentation.
+     * Provides a backup access point in case the root mapping has issues.
+     *
+     * @return Forward path to the JavaDoc documentation
+     */
+    @GetMapping("/javadoc")
+    public String documentation() {
         return "forward:/OOPDocumentationJavaDoc/index.html";
     }
 }
