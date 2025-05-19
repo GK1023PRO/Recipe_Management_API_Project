@@ -7,10 +7,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 @Controller
 public class ControllerUI {
 
-    @GetMapping("/")
-    public String redirectToDocs() {
-        return "redirect:/OOPDocumentationJavaDoc/index.html";
-    }
+
 
     @GetMapping("/ui")
     public String showUI(Model model) {
