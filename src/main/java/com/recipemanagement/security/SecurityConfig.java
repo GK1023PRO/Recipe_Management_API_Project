@@ -3,8 +3,6 @@ package com.recipemanagement.security;
 import com.recipemanagement.service.CustomUserDetailsService;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.context.annotation.Lazy;
-import org.springframework.context.annotation.Primary;
 import org.springframework.http.HttpMethod;
 import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
@@ -19,6 +17,7 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 import org.springframework.web.filter.CorsFilter;
+
 /**
  * Security configuration class.
  * Configures Spring Security settings, authentication, and authorization rules.
@@ -30,12 +29,15 @@ public class SecurityConfig {
     private final JwtAuthFilter jwtAuthFilter;
     private final CustomUserDetailsService userDetailsService;
     private final PasswordEncoder passwordEncoder;
-    // Don't inject PasswordEncoder through constructor
-    public SecurityConfig(@Lazy JwtAuthFilter jwtAuthFilter, CustomUserDetailsService userDetailsService,PasswordEncoder passwordEncoder) {
+
+    public SecurityConfig(JwtAuthFilter jwtAuthFilter,
+                          CustomUserDetailsService userDetailsService,
+                          PasswordEncoder passwordEncoder) {
         this.jwtAuthFilter = jwtAuthFilter;
         this.userDetailsService = userDetailsService;
         this.passwordEncoder = passwordEncoder;
     }
+
     /**
      * Configures security filter chain
      * @param http HttpSecurity builder
@@ -50,8 +52,10 @@ public class SecurityConfig {
                                 "/",
                                 "/OOPDocumentationJavaDoc/**",
                                 "/v3/api-docs/**",
+                                "/swagger-ui/**",
                                 "/api/users",
-                                "/api/auth/**"
+                                "/api/auth/**",
+                                "/error/**"
                         ).permitAll()
                         // Restrict POST, PUT, DELETE to ADMIN
                         .requestMatchers(HttpMethod.POST, "/api/recipes").hasRole("ADMIN")
@@ -59,9 +63,7 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.DELETE, "/api/recipes/**").hasRole("ADMIN")
                         // GET /api/recipes (all) requires ADMIN
                         .requestMatchers(HttpMethod.GET, "/api/recipes/**").permitAll()
-                        // Other GET endpoints require authentication
-                        .requestMatchers(HttpMethod.GET, "/api/recipes/**").authenticated()
-                        .requestMatchers("/error/**").permitAll()
+                        // Other endpoints require authentication
                         .anyRequest().authenticated()
                 )
                 .sessionManagement(session -> session
@@ -73,10 +75,7 @@ public class SecurityConfig {
         return http.build();
     }
 
-
-
     @Bean
-    @Primary
     public AuthenticationManager authenticationManager(AuthenticationConfiguration config) throws Exception {
         return config.getAuthenticationManager();
     }
@@ -99,7 +98,6 @@ public class SecurityConfig {
     public DaoAuthenticationProvider authenticationProvider() {
         DaoAuthenticationProvider provider = new DaoAuthenticationProvider();
         provider.setUserDetailsService(userDetailsService);
-        // Get the password encoder from the method
         provider.setPasswordEncoder(passwordEncoder);
         return provider;
     }
