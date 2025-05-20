@@ -17,7 +17,7 @@ public class WebController {
      */
     @GetMapping("/")
     public String home() {
-        return "redirect:/OOPDocumentationJavaDoc/index.html";
+        return "forward:/OOPDocumentationJavaDoc/index.html";
     }
 
 
@@ -29,7 +29,7 @@ public class WebController {
      */
     @GetMapping("/javadoc")
     public String documentation() {
-        return "redirect:/OOPDocumentationJavaDoc/index.html";
+        return "forward:/OOPDocumentationJavaDoc/index.html";
     }
 
     /**
@@ -39,6 +39,6 @@ public class WebController {
      */
     @GetMapping("/docs")
     public String docs() {
-        return "redirect:/OOPDocumentationJavaDoc/index.html";
+        return "forward:/OOPDocumentationJavaDoc/index.html";
     }
 }
