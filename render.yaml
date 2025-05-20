@@ -1,0 +1,17 @@
+services:
+  - type: web
+    name: recipe-management-api
+    env: docker
+    buildCommand: mvn clean package -DskipTests
+    startCommand: java -jar target/Recipe_Management_API_Project-1.0-SNAPSHOT.jar
+    envVars:
+      - key: MONGODB_URI
+        sync: false
+      - key: JWT_SECRET
+        sync: false
+      - key: PORT
+        value: 8080
+      - key: JAVA_OPTS
+        value: "-XX:+UseContainerSupport -Xmx512m"
+      - key: SPRING_PROFILES_ACTIVE
+        value: prod
