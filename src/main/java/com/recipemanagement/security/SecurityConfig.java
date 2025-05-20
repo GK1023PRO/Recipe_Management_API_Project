@@ -19,6 +19,7 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 import org.springframework.web.filter.CorsFilter;
+
 /**
  * Security configuration class.
  * Configures Spring Security settings, authentication, and authorization rules.
@@ -30,12 +31,13 @@ public class SecurityConfig {
     private final JwtAuthFilter jwtAuthFilter;
     private final CustomUserDetailsService userDetailsService;
     private final PasswordEncoder passwordEncoder;
-    // Don't inject PasswordEncoder through constructor
-    public SecurityConfig(@Lazy JwtAuthFilter jwtAuthFilter, CustomUserDetailsService userDetailsService,PasswordEncoder passwordEncoder) {
+
+    public SecurityConfig(@Lazy JwtAuthFilter jwtAuthFilter, CustomUserDetailsService userDetailsService, PasswordEncoder passwordEncoder) {
         this.jwtAuthFilter = jwtAuthFilter;
         this.userDetailsService = userDetailsService;
         this.passwordEncoder = passwordEncoder;
     }
+
     /**
      * Configures security filter chain
      * @param http HttpSecurity builder
@@ -51,7 +53,10 @@ public class SecurityConfig {
                                 "/OOPDocumentationJavaDoc/**",
                                 "/v3/api-docs/**",
                                 "/api/users",
-                                "/api/auth/**"
+                                "/api/auth/**",
+                                "/error",        // Added error path
+                                "/error/**",     // Added error sub-paths
+                                "/favicon.ico"   // Added favicon
                         ).permitAll()
                         // Restrict POST, PUT, DELETE to ADMIN
                         .requestMatchers(HttpMethod.POST, "/api/recipes").hasRole("ADMIN")
@@ -61,7 +66,6 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.GET, "/api/recipes/**").permitAll()
                         // Other GET endpoints require authentication
                         .requestMatchers(HttpMethod.GET, "/api/recipes/**").authenticated()
-                        .requestMatchers("/error/**").permitAll()
                         .anyRequest().authenticated()
                 )
                 .sessionManagement(session -> session
@@ -70,10 +74,9 @@ public class SecurityConfig {
                 .formLogin(AbstractHttpConfigurer::disable)
                 .httpBasic(AbstractHttpConfigurer::disable)
                 .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class);
+
         return http.build();
     }
-
-
 
     @Bean
     @Primary
@@ -99,7 +102,6 @@ public class SecurityConfig {
     public DaoAuthenticationProvider authenticationProvider() {
         DaoAuthenticationProvider provider = new DaoAuthenticationProvider();
         provider.setUserDetailsService(userDetailsService);
-        // Get the password encoder from the method
         provider.setPasswordEncoder(passwordEncoder);
         return provider;
     }
