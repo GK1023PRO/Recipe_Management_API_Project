@@ -12,89 +12,64 @@ import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 import java.io.IOException;
-import java.util.Arrays;
-import java.util.List;
 
+/**
+ * JWT authentication filter for Spring Security.
+ * Processes JWT tokens in incoming requests and sets up security context.
+ */
 @Component
 public class JwtAuthFilter extends OncePerRequestFilter {
     private final JwtUtil jwtUtil;
     private final UserDetailsService userDetailsService;
 
-    // Simplified public paths list for more reliable matching
-    private final List<String> publicPaths = Arrays.asList(
-            "/api/auth",
-            "/v3/api-docs",
-            "/swagger-ui",
-            "/OOPDocumentationJavaDoc",
-            "/api/health",
-            "/error",
-            "/docs",
-            "/javadoc",
-            "/api/users",
-            "/actuator"
-    );
-
-    private final List<String> exactPublicPaths = Arrays.asList(
-            "/",
-            "/favicon.ico",
-            "/index.html"
-    );
-
+    // Remove ApplicationContext as it's not needed anymore
     public JwtAuthFilter(JwtUtil jwtUtil, UserDetailsService userDetailsService) {
         this.jwtUtil = jwtUtil;
         this.userDetailsService = userDetailsService;
     }
-
-    private boolean isPublicPath(String path) {
-        // Check exact paths
-        if (exactPublicPaths.contains(path)) {
-            return true;
-        }
-
-        // Check prefixes
-        return publicPaths.stream().anyMatch(path::startsWith);
-    }
-
+    /**
+     * Main filter method for JWT processing
+     * @param request HTTP request
+     * @param response HTTP response
+     * @param filterChain Filter chain
+     */
     @Override
-    protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain)
-            throws ServletException, IOException {
+    protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
+        // Define public paths that don't need authentication
         String path = request.getRequestURI();
+        logger.debug("Processing path: " + path);
 
-        // Handle recipe GET requests separately to ensure they're public
-        boolean isPublicApiRecipe = request.getMethod().equals("GET") &&
-                (path.equals("/api/recipes") || path.startsWith("/api/recipes/"));
-
-        // Skip JWT validation for public paths
-        if (isPublicPath(path) || isPublicApiRecipe) {
+        // List of paths that don't require authentication
+        if (path.startsWith("/api/auth") || path.startsWith("/v3/api-docs")) {
+            logger.debug("Skipping JWT check for: " + path);
             filterChain.doFilter(request, response);
             return;
         }
 
         try {
-            String authHeader = request.getHeader("Authorization");
-            String token = null;
-            String username = null;
-
-            if (authHeader != null && authHeader.startsWith("Bearer ")) {
-                token = authHeader.substring(7);
-                username = jwtUtil.extractUsername(token);
-            }
-
-            if (username != null && SecurityContextHolder.getContext().getAuthentication() == null) {
-                UserDetails userDetails = userDetailsService.loadUserByUsername(username);
-
+            String token = request.getHeader("Authorization");
+            if (token != null && token.startsWith("Bearer ")) {
+                token = token.substring(7);
                 if (jwtUtil.validateToken(token)) {
+                    String username = jwtUtil.extractUsername(token);
+
+                    // Load user details and create authentication token with proper authorities
+                    // Use the injected userDetailsService directly
+                    UserDetails userDetails = userDetailsService.loadUserByUsername(username);
                     UsernamePasswordAuthenticationToken authToken =
-                            new UsernamePasswordAuthenticationToken(userDetails, null, userDetails.getAuthorities());
+                            new UsernamePasswordAuthenticationToken(
+                                    userDetails, null, userDetails.getAuthorities());
+
                     SecurityContextHolder.getContext().setAuthentication(authToken);
                 }
             }
-
+            // Continue the filter chain regardless of token presence
             filterChain.doFilter(request, response);
         } catch (Exception e) {
-            logger.error("JWT Authentication Error: ", e);
+            logger.error("JWT Filter Error: ", e);
             response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
-            response.getWriter().write("Authentication failed");
+            response.getWriter().write("Authentication failed: " + e.getMessage());
+            // Don't continue the filter chain on authentication errors
         }
     }
 }
