@@ -40,7 +40,7 @@ public class JwtAuthFilter extends OncePerRequestFilter {
         logger.debug("Processing path: " + path);
 
         // List of paths that don't require authentication
-        if (path.startsWith("/api/auth") || path.startsWith("/v3/api-docs")) {
+        if (path.startsWith("/api/auth") || path.startsWith("/v3/api-docs")||path.startsWith("/OOPDocumentationJavaDoc/")) {
             logger.debug("Skipping JWT check for: " + path);
             filterChain.doFilter(request, response);
             return;
