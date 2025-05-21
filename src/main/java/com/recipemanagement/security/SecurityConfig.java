@@ -20,36 +20,29 @@ import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 import org.springframework.web.filter.CorsFilter;
 
-/**
- * Security configuration class.
- * Configures Spring Security settings, authentication, and authorization rules.
- * Enhanced for cloud deployment compatibility.
- */
 @Configuration
 @EnableWebSecurity
 public class SecurityConfig {
 
-    private final JwtAuthFilter jwtAuthFilter;
     private final CustomUserDetailsService userDetailsService;
     private final PasswordEncoder passwordEncoder;
+    private final JwtAuthFilter jwtAuthFilter;
 
-    public SecurityConfig(@Lazy JwtAuthFilter jwtAuthFilter, CustomUserDetailsService userDetailsService, PasswordEncoder passwordEncoder) {
-        this.jwtAuthFilter = jwtAuthFilter;
+    public SecurityConfig(
+            CustomUserDetailsService userDetailsService,
+            PasswordEncoder passwordEncoder,
+            @Lazy JwtAuthFilter jwtAuthFilter) {
         this.userDetailsService = userDetailsService;
         this.passwordEncoder = passwordEncoder;
+        this.jwtAuthFilter = jwtAuthFilter;
     }
 
-    /**
-     * Configures security filter chain with improved public path definitions
-     * @param http HttpSecurity builder
-     * @return Configured SecurityFilterChain
-     */
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
                 .csrf(AbstractHttpConfigurer::disable)
                 .authorizeHttpRequests(auth -> auth
-                        // Static resources and documentation
+                        // Static resources and public endpoints
                         .requestMatchers(
                                 "/",
                                 "/index.html",
@@ -60,21 +53,24 @@ public class SecurityConfig {
                                 "/api/health",
                                 "/api/auth/**",
                                 "/api/users",
-                                "/error",
                                 "/error/**",
+                                "/error",
                                 "/docs",
                                 "/javadoc",
                                 "/favicon.ico",
                                 "/actuator/**"
                         ).permitAll()
 
-                        // Public API endpoints
+                        // Public API endpoints - make these very explicit
                         .requestMatchers(HttpMethod.GET, "/api/recipes").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/api/recipes/*").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/recipes/**").permitAll()
 
                         // Protected API endpoints
                         .requestMatchers(HttpMethod.POST, "/api/recipes").hasRole("ADMIN")
+                        .requestMatchers(HttpMethod.PUT, "/api/recipes/*").hasRole("ADMIN")
                         .requestMatchers(HttpMethod.PUT, "/api/recipes/**").hasRole("ADMIN")
+                        .requestMatchers(HttpMethod.DELETE, "/api/recipes/*").hasRole("ADMIN")
                         .requestMatchers(HttpMethod.DELETE, "/api/recipes/**").hasRole("ADMIN")
 
                         // Default rule
@@ -100,13 +96,10 @@ public class SecurityConfig {
     public CorsFilter corsFilter() {
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
         CorsConfiguration config = new CorsConfiguration();
-
-        // Allow specified origins for better security
-        config.addAllowedOrigin("*"); // Consider restricting this in production
+        config.addAllowedOrigin("*");
         config.addAllowedHeader("*");
         config.addAllowedMethod("*");
         config.setAllowCredentials(false);
-
         source.registerCorsConfiguration("/**", config);
         return new CorsFilter(source);
     }
