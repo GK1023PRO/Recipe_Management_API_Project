@@ -22,11 +22,11 @@ public class JwtAuthFilter extends OncePerRequestFilter {
     private final JwtUtil jwtUtil;
     private final UserDetailsService userDetailsService;
 
-    // Remove ApplicationContext as it's not needed anymore
     public JwtAuthFilter(JwtUtil jwtUtil, UserDetailsService userDetailsService) {
         this.jwtUtil = jwtUtil;
         this.userDetailsService = userDetailsService;
     }
+
     /**
      * Main filter method for JWT processing
      * @param request HTTP request
@@ -39,8 +39,17 @@ public class JwtAuthFilter extends OncePerRequestFilter {
         String path = request.getRequestURI();
         logger.debug("Processing path: " + path);
 
-        // List of paths that don't require authentication
-        if (path.startsWith("/api/auth") || path.startsWith("/v3/api-docs")||path.startsWith("/OOPDocumentationJavaDoc/")) {
+        // List of paths that don't require authentication - EXPANDED LIST
+        if (path.equals("/") ||
+                path.equals("/index.html") ||
+                path.startsWith("/OOPDocumentationJavaDoc/") ||
+                path.startsWith("/static/") ||
+                path.startsWith("/api/auth") ||
+                path.startsWith("/v3/api-docs") ||
+                path.startsWith("/docs") ||
+                path.startsWith("/javadoc") ||
+                path.startsWith("/actuator") ||
+                path.startsWith("/error")) {
             logger.debug("Skipping JWT check for: " + path);
             filterChain.doFilter(request, response);
             return;
@@ -54,7 +63,6 @@ public class JwtAuthFilter extends OncePerRequestFilter {
                     String username = jwtUtil.extractUsername(token);
 
                     // Load user details and create authentication token with proper authorities
-                    // Use the injected userDetailsService directly
                     UserDetails userDetails = userDetailsService.loadUserByUsername(username);
                     UsernamePasswordAuthenticationToken authToken =
                             new UsernamePasswordAuthenticationToken(
@@ -67,9 +75,13 @@ public class JwtAuthFilter extends OncePerRequestFilter {
             filterChain.doFilter(request, response);
         } catch (Exception e) {
             logger.error("JWT Filter Error: ", e);
-            response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
-            response.getWriter().write("Authentication failed: " + e.getMessage());
-            // Don't continue the filter chain on authentication errors
+            // For static resources, continue anyway
+            if (path.startsWith("/OOPDocumentationJavaDoc/") || path.startsWith("/static/")) {
+                filterChain.doFilter(request, response);
+            } else {
+                response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+                response.getWriter().write("Authentication failed: " + e.getMessage());
+            }
         }
     }
 }

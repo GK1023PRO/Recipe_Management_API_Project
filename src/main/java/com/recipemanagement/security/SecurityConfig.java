@@ -42,11 +42,15 @@ public class SecurityConfig {
         http
                 .csrf(AbstractHttpConfigurer::disable)
                 .authorizeHttpRequests(auth -> auth
-                        // Static resources and public endpoints
+                        // Static resources and public endpoints - FIXED ORDER
                         .requestMatchers(
                                 "/",
                                 "/index.html",
                                 "/OOPDocumentationJavaDoc/**",
+                                "/static/**",
+                                "/css/**",
+                                "/js/**",
+                                "/images/**",
                                 "/v3/api-docs/**",
                                 "/swagger-ui/**",
                                 "/swagger-ui.html",

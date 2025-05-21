@@ -7,7 +7,7 @@ import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 
 /**
  * Enhanced web configuration to handle static resources and URL mappings.
- * Modified for proper deployment on Render.
+ * Fixed for proper deployment on Render.
  */
 @Configuration
 public class WebConfig implements WebMvcConfigurer {
@@ -18,15 +18,20 @@ public class WebConfig implements WebMvcConfigurer {
      */
     @Override
     public void addResourceHandlers(ResourceHandlerRegistry registry) {
-        // JavaDoc specific resources - high priority
+        // JavaDoc specific resources - HIGHEST priority
         registry.addResourceHandler("/OOPDocumentationJavaDoc/**")
                 .addResourceLocations("classpath:/static/OOPDocumentationJavaDoc/")
-                .setCachePeriod(3600); // Cache for 1 hour
+                .setCachePeriod(0); // No cache for debugging
 
-        // All other static resources
-        registry.addResourceHandler("/**")
+        // Static resources - general
+        registry.addResourceHandler("/static/**")
                 .addResourceLocations("classpath:/static/")
-                .setCachePeriod(3600);
+                .setCachePeriod(0);
+
+        // All other static resources - LOWEST priority
+        registry.addResourceHandler("/**")
+                .addResourceLocations("classpath:/static/", "classpath:/public/")
+                .setCachePeriod(0);
     }
 
     /**
@@ -35,10 +40,12 @@ public class WebConfig implements WebMvcConfigurer {
      */
     @Override
     public void addViewControllers(ViewControllerRegistry registry) {
-        // Forward the root URL to JavaDoc index
-        registry.addViewController("/").setViewName("forward:/OOPDocumentationJavaDoc/index.html");
+        // Direct redirect for root URL
+        registry.addRedirectViewController("/", "/OOPDocumentationJavaDoc/index.html");
 
-        // Add another redirect as backup
+        // Additional helpful redirects
         registry.addRedirectViewController("/docs", "/OOPDocumentationJavaDoc/index.html");
+        registry.addRedirectViewController("/javadoc", "/OOPDocumentationJavaDoc/index.html");
+        registry.addRedirectViewController("/index.html", "/OOPDocumentationJavaDoc/index.html");
     }
 }
