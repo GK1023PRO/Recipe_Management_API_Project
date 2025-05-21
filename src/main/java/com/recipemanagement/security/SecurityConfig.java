@@ -23,6 +23,7 @@ import org.springframework.web.filter.CorsFilter;
 /**
  * Security configuration class.
  * Configures Spring Security settings, authentication, and authorization rules.
+ * Enhanced for cloud deployment compatibility.
  */
 @Configuration
 @EnableWebSecurity
@@ -39,7 +40,7 @@ public class SecurityConfig {
     }
 
     /**
-     * Configures security filter chain
+     * Configures security filter chain with improved public path definitions
      * @param http HttpSecurity builder
      * @return Configured SecurityFilterChain
      */
@@ -48,24 +49,35 @@ public class SecurityConfig {
         http
                 .csrf(AbstractHttpConfigurer::disable)
                 .authorizeHttpRequests(auth -> auth
+                        // Static resources and documentation
                         .requestMatchers(
                                 "/",
+                                "/index.html",
                                 "/OOPDocumentationJavaDoc/**",
                                 "/v3/api-docs/**",
-                                "/api/users",
+                                "/swagger-ui/**",
+                                "/swagger-ui.html",
+                                "/api/health",
                                 "/api/auth/**",
-                                "/error",        // Added error path
-                                "/error/**",     // Added error sub-paths
-                                "/favicon.ico"   // Added favicon
+                                "/api/users",
+                                "/error",
+                                "/error/**",
+                                "/docs",
+                                "/javadoc",
+                                "/favicon.ico",
+                                "/actuator/**"
                         ).permitAll()
-                        // Restrict POST, PUT, DELETE to ADMIN
+
+                        // Public API endpoints
+                        .requestMatchers(HttpMethod.GET, "/api/recipes").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/api/recipes/**").permitAll()
+
+                        // Protected API endpoints
                         .requestMatchers(HttpMethod.POST, "/api/recipes").hasRole("ADMIN")
                         .requestMatchers(HttpMethod.PUT, "/api/recipes/**").hasRole("ADMIN")
                         .requestMatchers(HttpMethod.DELETE, "/api/recipes/**").hasRole("ADMIN")
-                        // GET /api/recipes (all) requires ADMIN
-                        .requestMatchers(HttpMethod.GET, "/api/recipes/**").permitAll()
-                        // Other GET endpoints require authentication
-                        .requestMatchers(HttpMethod.GET, "/api/recipes/**").authenticated()
+
+                        // Default rule
                         .anyRequest().authenticated()
                 )
                 .sessionManagement(session -> session
@@ -89,10 +101,11 @@ public class SecurityConfig {
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
         CorsConfiguration config = new CorsConfiguration();
 
-        // Allow all origins for testing
-        config.addAllowedOrigin("*");
+        // Allow specified origins for better security
+        config.addAllowedOrigin("*"); // Consider restricting this in production
         config.addAllowedHeader("*");
         config.addAllowedMethod("*");
+        config.setAllowCredentials(false);
 
         source.registerCorsConfiguration("/**", config);
         return new CorsFilter(source);

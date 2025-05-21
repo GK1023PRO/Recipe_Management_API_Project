@@ -2,43 +2,68 @@ package com.recipemanagement.config;
 
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.ResponseBody;
+import org.springframework.web.servlet.view.RedirectView;
 
 /**
  * Controller for handling the root URL and JavaDoc documentation routes.
- * Avoids ambiguous mappings by combining all routes into one controller.
+ * Enhanced to support both local and cloud deployments.
  */
 @Controller
 public class WebController {
 
     /**
-     * Handles the root URL and forwards to the JavaDoc documentation.
+     * Simple health check endpoint to verify the application is running.
+     * This helps diagnose deployment issues.
      *
-     * @return Forward path to the JavaDoc documentation index page
+     * @return A simple status message
      */
-    @GetMapping("/")
-    public String home() {
-        return "redirect:/OOPDocumentationJavaDoc/index.html";
+    @GetMapping("/api/health")
+    @ResponseBody
+    public String healthCheck() {
+        return "Recipe Management API is running";
     }
 
+    /**
+     * Handles the root URL with explicit RedirectView.
+     * This ensures proper redirection in cloud environments.
+     *
+     * @return RedirectView to the JavaDoc documentation
+     */
+    @GetMapping("/")
+    public RedirectView home() {
+        return new RedirectView("/OOPDocumentationJavaDoc/index.html");
+    }
 
+    /**
+     * Fallback handler for the root context.
+     * Useful when the main handler might be bypassed.
+     *
+     * @return RedirectView to the JavaDoc documentation
+     */
+    @RequestMapping("")
+    public RedirectView rootFallback() {
+        return new RedirectView("/OOPDocumentationJavaDoc/index.html");
+    }
 
     /**
      * Endpoint to access documentation via /javadoc.
      *
-     * @return Forward path to the JavaDoc documentation
+     * @return RedirectView to the JavaDoc documentation
      */
     @GetMapping("/javadoc")
-    public String documentation() {
-        return "redirect:/OOPDocumentationJavaDoc/index.html";
+    public RedirectView documentation() {
+        return new RedirectView("/OOPDocumentationJavaDoc/index.html");
     }
 
     /**
      * Endpoint to access documentation via /docs.
      *
-     * @return Forward path to the JavaDoc documentation
+     * @return RedirectView to the JavaDoc documentation
      */
     @GetMapping("/docs")
-    public String docs() {
-        return "redirect:/OOPDocumentationJavaDoc/index.html";
+    public RedirectView docs() {
+        return new RedirectView("/OOPDocumentationJavaDoc/index.html");
     }
 }

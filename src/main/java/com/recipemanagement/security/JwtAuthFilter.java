@@ -12,36 +12,80 @@ import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 import java.io.IOException;
+import java.util.Arrays;
+import java.util.List;
 
 /**
  * JWT authentication filter for Spring Security.
- * Processes JWT tokens in incoming requests and sets up security context.
+ * Enhanced with better public path handling for cloud deployments.
  */
 @Component
 public class JwtAuthFilter extends OncePerRequestFilter {
     private final JwtUtil jwtUtil;
     private final UserDetailsService userDetailsService;
 
-    // Remove ApplicationContext as it's not needed anymore
+    // List of path prefixes that should skip authentication
+    private final List<String> publicPaths = Arrays.asList(
+            "/api/auth",
+            "/v3/api-docs",
+            "/swagger-ui",
+            "/OOPDocumentationJavaDoc",
+            "/api/health",
+            "/error",
+            "/docs",
+            "/javadoc",
+            "/api/users",
+            "/actuator"
+    );
+
+    // List of exact paths that should skip authentication
+    private final List<String> exactPublicPaths = Arrays.asList(
+            "/",
+            "/favicon.ico",
+            "/index.html"
+    );
+
     public JwtAuthFilter(JwtUtil jwtUtil, UserDetailsService userDetailsService) {
         this.jwtUtil = jwtUtil;
         this.userDetailsService = userDetailsService;
     }
+
     /**
-     * Main filter method for JWT processing
+     * Determines if a path should skip authentication
+     * @param path Request URI path
+     * @return true if authentication should be skipped
+     */
+    private boolean isPublicPath(String path) {
+        // Check exact paths first
+        if (exactPublicPaths.contains(path)) {
+            return true;
+        }
+
+        // Check path prefixes
+        return publicPaths.stream().anyMatch(path::startsWith);
+    }
+
+    /**
+     * Main filter method for JWT processing with enhanced path handling
      * @param request HTTP request
      * @param response HTTP response
      * @param filterChain Filter chain
      */
     @Override
-    protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
-        // Define public paths that don't need authentication
+    protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain)
+            throws ServletException, IOException {
         String path = request.getRequestURI();
+
+        // Log path for debugging (consider removing in production)
         logger.debug("Processing path: " + path);
 
-        // List of paths that don't require authentication
-        if (path.startsWith("/api/auth") || path.startsWith("/v3/api-docs")) {
-            logger.debug("Skipping JWT check for: " + path);
+        // Check for GET /api/recipes requests which should be public
+        boolean isPublicApiRecipe = request.getMethod().equals("GET") &&
+                path.startsWith("/api/recipes");
+
+        // Skip JWT token validation for public paths
+        if (isPublicPath(path) || isPublicApiRecipe) {
+            logger.debug("Skipping JWT check for public path: " + path);
             filterChain.doFilter(request, response);
             return;
         }
@@ -53,8 +97,7 @@ public class JwtAuthFilter extends OncePerRequestFilter {
                 if (jwtUtil.validateToken(token)) {
                     String username = jwtUtil.extractUsername(token);
 
-                    // Load user details and create authentication token with proper authorities
-                    // Use the injected userDetailsService directly
+                    // Load user details and create authentication token
                     UserDetails userDetails = userDetailsService.loadUserByUsername(username);
                     UsernamePasswordAuthenticationToken authToken =
                             new UsernamePasswordAuthenticationToken(
@@ -63,13 +106,12 @@ public class JwtAuthFilter extends OncePerRequestFilter {
                     SecurityContextHolder.getContext().setAuthentication(authToken);
                 }
             }
-            // Continue the filter chain regardless of token presence
+            // Continue the filter chain
             filterChain.doFilter(request, response);
         } catch (Exception e) {
             logger.error("JWT Filter Error: ", e);
             response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
             response.getWriter().write("Authentication failed: " + e.getMessage());
-            // Don't continue the filter chain on authentication errors
         }
     }
 }
