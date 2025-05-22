@@ -169,19 +169,54 @@
 
     <build>
         <plugins>
-            <!-- Spring Boot Maven Plugin -->
+            <!-- Maven Javadoc Plugin - Generate JavaDoc FIRST -->
             <plugin>
-                <groupId>org.springframework.boot</groupId>
-                <artifactId>spring-boot-maven-plugin</artifactId>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-javadoc-plugin</artifactId>
+                <version>3.5.0</version>
                 <configuration>
-                    <mainClass>com.recipemanagement.Main</mainClass>
-                    <executable>true</executable>
+                    <show>public</show>
+                    <nohelp>true</nohelp>
+                    <tags>
+                        <tag>
+                            <name>since</name>
+                            <placement>a</placement>
+                            <head>Since Version:</head>
+                        </tag>
+                    </tags>
                 </configuration>
                 <executions>
                     <execution>
+                        <id>generate-javadoc</id>
+                        <phase>compile</phase>
                         <goals>
-                            <goal>repackage</goal>
+                            <goal>javadoc</goal>
                         </goals>
+                    </execution>
+                </executions>
+            </plugin>
+
+            <!-- Maven Resources Plugin - Copy JavaDoc to static resources -->
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-resources-plugin</artifactId>
+                <version>3.3.0</version>
+                <executions>
+                    <execution>
+                        <id>copy-javadoc</id>
+                        <phase>process-classes</phase>
+                        <goals>
+                            <goal>copy-resources</goal>
+                        </goals>
+                        <configuration>
+                            <outputDirectory>${project.basedir}/src/main/resources/static/OOPDocumentationJavaDoc</outputDirectory>
+                            <resources>
+                                <resource>
+                                    <directory>${project.build.directory}/site/apidocs</directory>
+                                    <filtering>false</filtering>
+                                </resource>
+                            </resources>
+                        </configuration>
                     </execution>
                 </executions>
             </plugin>
@@ -206,44 +241,26 @@
                 </configuration>
             </plugin>
 
-            <!-- Maven Javadoc Plugin -->
+            <!-- Spring Boot Maven Plugin -->
             <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-javadoc-plugin</artifactId>
-                <version>3.5.0</version>
+                <groupId>org.springframework.boot</groupId>
+                <artifactId>spring-boot-maven-plugin</artifactId>
                 <configuration>
-                    <show>public</show>
-                    <nohelp>true</nohelp>
-                    <tags>
-                        <tag>
-                            <name>since</name>
-                            <placement>a</placement>
-                            <head>Since Version:</head>
-                        </tag>
-                    </tags>
+                    <mainClass>com.recipemanagement.Main</mainClass>
+                    <executable>true</executable>
                 </configuration>
-            </plugin>
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-resources-plugin</artifactId>
                 <executions>
                     <execution>
-                        <id>copy-javadoc</id>
-                        <phase>prepare-package</phase>
                         <goals>
-                            <goal>copy-resources</goal>
+                            <goal>repackage</goal>
                         </goals>
-                        <configuration>
-                            <outputDirectory>${project.basedir}/src/main/resources/static/OOPDocumentationJavaDoc</outputDirectory>
-                            <resources>
-                                <resource>
-                                    <directory>${project.build.directory}/site/apidocs</directory>
-                                    <filtering>false</filtering>
-                                </resource>
-                            </resources>
-                        </configuration>
                     </execution>
                 </executions>
+            </plugin>
+
+            <plugin>
+                <groupId>org.springframework.boot</groupId>
+                <artifactId>spring-boot-maven-plugin</artifactId>
             </plugin>
         </plugins>
     </build>

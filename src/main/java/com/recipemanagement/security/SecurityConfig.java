@@ -42,7 +42,7 @@ public class SecurityConfig {
         http
                 .csrf(AbstractHttpConfigurer::disable)
                 .authorizeHttpRequests(auth -> auth
-                        // Static resources and public endpoints - FIXED ORDER
+                        // Static resources and documentation - HIGHEST PRIORITY
                         .requestMatchers(
                                 "/",
                                 "/index.html",
@@ -51,21 +51,31 @@ public class SecurityConfig {
                                 "/css/**",
                                 "/js/**",
                                 "/images/**",
+                                "/favicon.ico"
+                        ).permitAll()
+
+                        // API Documentation
+                        .requestMatchers(
                                 "/v3/api-docs/**",
                                 "/swagger-ui/**",
                                 "/swagger-ui.html",
+                                "/docs/**",
+                                "/javadoc/**"
+                        ).permitAll()
+
+                        // Health and error endpoints
+                        .requestMatchers(
                                 "/api/health",
-                                "/api/auth/**",
-                                "/api/users",
                                 "/error/**",
                                 "/error",
-                                "/docs",
-                                "/javadoc",
-                                "/favicon.ico",
                                 "/actuator/**"
                         ).permitAll()
 
-                        // Public API endpoints - make these very explicit
+                        // Authentication endpoints
+                        .requestMatchers("/api/auth/**").permitAll()
+                        .requestMatchers(HttpMethod.POST, "/api/users").permitAll()
+
+                        // Public API endpoints for recipes
                         .requestMatchers(HttpMethod.GET, "/api/recipes").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/recipes/*").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/recipes/**").permitAll()
@@ -77,7 +87,7 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.DELETE, "/api/recipes/*").hasRole("ADMIN")
                         .requestMatchers(HttpMethod.DELETE, "/api/recipes/**").hasRole("ADMIN")
 
-                        // Default rule
+                        // All other requests need authentication
                         .anyRequest().authenticated()
                 )
                 .sessionManagement(session -> session
@@ -100,7 +110,7 @@ public class SecurityConfig {
     public CorsFilter corsFilter() {
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
         CorsConfiguration config = new CorsConfiguration();
-        config.addAllowedOrigin("*");
+        config.addAllowedOriginPattern("*"); // Changed from addAllowedOrigin("*")
         config.addAllowedHeader("*");
         config.addAllowedMethod("*");
         config.setAllowCredentials(false);
