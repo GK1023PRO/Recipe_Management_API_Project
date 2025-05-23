@@ -33,7 +33,7 @@ RUN cp -r /app/target/classes/static/OOPDocumentationJavaDoc/. /app/static/OOPDo
 RUN chmod 755 /app/static && chmod -R 644 /app/static/* || true
 
 # Expose port
-EXPOSE 8080
+EXPOSE 10000
 
 # Health check
 HEALTHCHECK --interval=30s --timeout=10s --start-period=40s --retries=3 \
