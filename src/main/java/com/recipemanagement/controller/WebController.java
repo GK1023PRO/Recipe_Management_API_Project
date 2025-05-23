@@ -25,7 +25,7 @@ public class WebController {
         // Check if JavaDoc exists
         ClassPathResource resource = new ClassPathResource("static/OOPDocumentationJavaDoc/index.html");
         if (resource.exists()) {
-            return "redirect:/OOPDocumentationJavaDoc/index.html";
+            return "redirect:/docs/index.html";
         } else {
             logger.warn("JavaDoc not found, showing fallback message");
             return "redirect:/api/health";
