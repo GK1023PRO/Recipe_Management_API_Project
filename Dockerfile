@@ -1,4 +1,6 @@
+# ===================
 # Build stage
+# ===================
 FROM maven:3.8.5-eclipse-temurin-17 AS build
 
 WORKDIR /app
@@ -7,14 +9,16 @@ WORKDIR /app
 COPY pom.xml .
 COPY src ./src
 
-# Force complete clean build
-RUN mvn clean -U
-RUN mvn dependency:purge-local-repository -DactTransitively=false -DreResolve=false || true
-RUN mvn compile -U
-RUN mvn javadoc:javadoc -U
-RUN mvn package -DskipTests -U
+# Clean build and generate jar with javadoc
+RUN mvn clean \
+ && mvn dependency:purge-local-repository -DactTransitively=false -DreResolve=false || true \
+ && mvn compile \
+ && mvn javadoc:javadoc \
+ && mvn package -DskipTests
 
+# ===================
 # Runtime stage
+# ===================
 FROM eclipse-temurin:17-jdk-alpine
 
 WORKDIR /app
@@ -22,20 +26,13 @@ WORKDIR /app
 # Install curl for health checks
 RUN apk add --no-cache curl
 
-# Copy the packaged jar
+# Copy the built jar
 COPY --from=build /app/target/*.jar app.jar
 
-# Create static directory and copy JavaDoc if it exists
-RUN mkdir -p /app/static/OOPDocumentationJavaDoc
-RUN cp -r /app/target/classes/static/OOPDocumentationJavaDoc/. /app/static/OOPDocumentationJavaDoc/ 2>/dev/null || true
-
-# Set proper permissions
-RUN chmod 755 /app/static && chmod -R 644 /app/static/* || true
-
-# Expose port
+# Expose the application port
 EXPOSE 8080
 
-# Health check
+# Health check endpoint
 HEALTHCHECK --interval=30s --timeout=10s --start-period=40s --retries=3 \
   CMD curl -f http://localhost:8080/api/health || exit 1
 
