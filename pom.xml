@@ -14,6 +14,7 @@
     <groupId>org.example</groupId>
     <artifactId>Recipe_Management_API_Project</artifactId>
     <version>1.0-SNAPSHOT</version>
+    <packaging>jar</packaging>
 
     <properties>
         <java.version>17</java.version>

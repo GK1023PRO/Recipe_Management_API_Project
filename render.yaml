@@ -1,0 +1,25 @@
+services:
+  - type: web
+    name: spring-recipe-api
+    env: docker
+    plan: free
+    dockerfilePath: Dockerfile
+    dockerContext: .
+    healthCheckPath: /api/health
+    envVars:
+      - key: DEBUG
+        value: true
+      - key: JWT_SECRET
+        value: V9BYt3P7unN2yzAMwsH5gK8D6EJqCeXr4Z7LxGhQjTkFbRdCvU3mWnS2pE9YzAq5BgK8D4fH7jLmN6P2trTvUxXyZaEcRfVg
+      - key: logging.level.org.springframework
+        value: DEBUG
+      - key: logging.level.root
+        value: DEBUG
+      - key: MONGODB_URI
+        value: mongodb+srv://JOUJOU:1234@recipedb.npihwk6.mongodb.net/recipeDB?retryWrites=true&w=majority
+      - key: PORT
+        value: 8080
+      - key: SPRING_OUTPUT_ANSI_ENABLED
+        value: ALWAYS
+      - key: SPRING_PROFILES_ACTIVE
+        value: prod
