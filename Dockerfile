@@ -6,9 +6,17 @@ WORKDIR /app
 COPY pom.xml .
 COPY src ./src
 
-# Generate JavaDoc and build the application
-RUN mvn clean compile javadoc:javadoc
-RUN mvn process-classes
+# Clean and compile
+RUN mvn clean compile
+
+# Generate JavaDoc first
+RUN mvn javadoc:javadoc
+
+# Copy JavaDoc to resources directory
+RUN mkdir -p src/main/resources/static/OOPDocumentationJavaDoc
+RUN cp -r target/site/apidocs/* src/main/resources/static/OOPDocumentationJavaDoc/ || true
+
+# Build the application
 RUN mvn package -DskipTests
 
 # Runtime stage

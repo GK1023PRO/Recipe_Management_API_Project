@@ -173,7 +173,31 @@
                 </configuration>
             </plugin>
 
-            <!-- Maven Javadoc Plugin - Generate JavaDoc -->
+            <!-- Maven Resources Plugin -->
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-resources-plugin</artifactId>
+                <version>3.3.1</version>
+                <executions>
+                    <execution>
+                        <id>copy-javadoc</id>
+                        <phase>process-resources</phase>
+                        <goals>
+                            <goal>copy-resources</goal>
+                        </goals>
+                        <configuration>
+                            <outputDirectory>${project.build.outputDirectory}/static/OOPDocumentationJavaDoc</outputDirectory>
+                            <resources>
+                                <resource>
+                                    <directory>${project.build.directory}/site/apidocs</directory>
+                                </resource>
+                            </resources>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+
+            <!-- Maven Javadoc Plugin -->
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-javadoc-plugin</artifactId>
@@ -182,6 +206,7 @@
                     <show>public</show>
                     <nohelp>true</nohelp>
                     <failOnError>false</failOnError>
+                    <outputDirectory>${project.build.directory}/site/apidocs</outputDirectory>
                     <tags>
                         <tag>
                             <name>since</name>
@@ -193,7 +218,7 @@
                 <executions>
                     <execution>
                         <id>generate-javadoc</id>
-                        <phase>prepare-package</phase>
+                        <phase>compile</phase>
                         <goals>
                             <goal>javadoc</goal>
                         </goals>
@@ -210,7 +235,7 @@
                 </configuration>
             </plugin>
 
-            <!-- Spring Boot Maven Plugin - SINGLE DECLARATION -->
+            <!-- Spring Boot Maven Plugin -->
             <plugin>
                 <groupId>org.springframework.boot</groupId>
                 <artifactId>spring-boot-maven-plugin</artifactId>
