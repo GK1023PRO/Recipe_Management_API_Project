@@ -41,6 +41,16 @@ public class SecurityConfig {
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
                 .csrf(AbstractHttpConfigurer::disable)
+                .cors(cors -> cors.configurationSource(corsConfigurationSource()))
+                .requiresChannel(channel ->
+                        channel.requestMatchers(r -> r.getHeader("X-Forwarded-Proto") != null)
+                                .requiresSecure())
+                .headers(headers -> headers
+                        .frameOptions(frameOptions -> frameOptions.deny())
+                        .contentTypeOptions(contentTypeOptions -> contentTypeOptions.disable())
+                        .httpStrictTransportSecurity(hstsConfig -> hstsConfig
+                                .maxAgeInSeconds(31536000)
+                                .includeSubDomains(true)))
                 .authorizeHttpRequests(auth -> auth
                         // Static resources and documentation - HIGHEST PRIORITY
                         .requestMatchers(
@@ -51,7 +61,8 @@ public class SecurityConfig {
                                 "/css/**",
                                 "/js/**",
                                 "/images/**",
-                                "/favicon.ico"
+                                "/favicon.ico",
+                                "/webjars/**"
                         ).permitAll()
 
                         // API Documentation
@@ -59,6 +70,7 @@ public class SecurityConfig {
                                 "/v3/api-docs/**",
                                 "/swagger-ui/**",
                                 "/swagger-ui.html",
+                                "/swagger-resources/**",
                                 "/docs/**",
                                 "/javadoc/**"
                         ).permitAll()
@@ -66,6 +78,7 @@ public class SecurityConfig {
                         // Health and error endpoints
                         .requestMatchers(
                                 "/api/health",
+                                "/health",
                                 "/error/**",
                                 "/error",
                                 "/actuator/**"
@@ -74,17 +87,15 @@ public class SecurityConfig {
                         // Authentication endpoints
                         .requestMatchers("/api/auth/**").permitAll()
                         .requestMatchers(HttpMethod.POST, "/api/users").permitAll()
+                        .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll() // Allow preflight requests
 
                         // Public API endpoints for recipes
                         .requestMatchers(HttpMethod.GET, "/api/recipes").permitAll()
-                        .requestMatchers(HttpMethod.GET, "/api/recipes/*").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/recipes/**").permitAll()
 
                         // Protected API endpoints
                         .requestMatchers(HttpMethod.POST, "/api/recipes").hasRole("ADMIN")
-                        .requestMatchers(HttpMethod.PUT, "/api/recipes/*").hasRole("ADMIN")
                         .requestMatchers(HttpMethod.PUT, "/api/recipes/**").hasRole("ADMIN")
-                        .requestMatchers(HttpMethod.DELETE, "/api/recipes/*").hasRole("ADMIN")
                         .requestMatchers(HttpMethod.DELETE, "/api/recipes/**").hasRole("ADMIN")
 
                         // All other requests need authentication
@@ -107,15 +118,39 @@ public class SecurityConfig {
     }
 
     @Bean
-    public CorsFilter corsFilter() {
+    public UrlBasedCorsConfigurationSource corsConfigurationSource() {
+        CorsConfiguration configuration = new CorsConfiguration();
+
+        // Allow your specific Render domain
+        configuration.addAllowedOrigin("https://recipe-management-api-project.onrender.com");
+        configuration.addAllowedOriginPattern("https://*.onrender.com");
+        configuration.addAllowedOriginPattern("http://localhost:*"); // For local development
+
+        // Allow common headers
+        configuration.addAllowedHeader("*");
+
+        // Allow common methods
+        configuration.addAllowedMethod("GET");
+        configuration.addAllowedMethod("POST");
+        configuration.addAllowedMethod("PUT");
+        configuration.addAllowedMethod("DELETE");
+        configuration.addAllowedMethod("OPTIONS");
+        configuration.addAllowedMethod("HEAD");
+
+        // Set credentials to true for specific origins
+        configuration.setAllowCredentials(true);
+
+        // Cache preflight response for 1 hour
+        configuration.setMaxAge(3600L);
+
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
-        CorsConfiguration config = new CorsConfiguration();
-        config.addAllowedOriginPattern("*"); // Changed from addAllowedOrigin("*")
-        config.addAllowedHeader("*");
-        config.addAllowedMethod("*");
-        config.setAllowCredentials(false);
-        source.registerCorsConfiguration("/**", config);
-        return new CorsFilter(source);
+        source.registerCorsConfiguration("/**", configuration);
+        return source;
+    }
+
+    @Bean
+    public CorsFilter corsFilter() {
+        return new CorsFilter(corsConfigurationSource());
     }
 
     @Bean
